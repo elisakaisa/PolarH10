@@ -34,7 +34,7 @@ public class MainActivity extends AppCompatActivity {
     int PERMISSION_ALL = 1;
 
     Button bConnect;
-    TextView tv1;
+    TextView tv1, tv2;
 
     /*--------------------------- LOG -----------------------*/
     private static final String TAG = MainActivity.class.getSimpleName();
@@ -47,6 +47,7 @@ public class MainActivity extends AppCompatActivity {
         /*---------- UI ----------*/
         bConnect = findViewById(R.id.connect);
         tv1 = findViewById(R.id.TV1);
+        tv2 = findViewById(R.id.TV2);
 
 
         /*------- PERMISSIONS -------*/
@@ -107,6 +108,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void hrNotificationReceived (@NonNull String identifier, @NonNull PolarHrData data){
                 Log.d("MyApp", "HR: " + data.hr);
+                String sTv2 = "HR: " + data.hr;
+                tv2.setText(sTv2);
             }
 
             @Override
