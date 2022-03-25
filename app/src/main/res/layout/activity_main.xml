@@ -58,6 +58,15 @@
             android:textAlignment="center"
             android:textSize="20sp"
             android:text="@string/HR" />
+        <TextView
+            android:id="@+id/tv_RRSms"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="20dp"
+            android:layout_marginEnd="20dp"
+            android:textAlignment="center"
+            android:textSize="20sp"
+            android:text="@string/RRS" />
         <Chronometer
             android:id="@+id/chronometer"
             android:layout_width="match_parent"
@@ -79,7 +88,8 @@
             android:layout_marginEnd="20dp"
             android:textAlignment="center"
             android:textSize="20sp"
-            android:text="TV3" />
+            android:text="TV3"
+            android:visibility="gone"/>
 
         <TextView
             android:id="@+id/TV4"
@@ -89,7 +99,8 @@
             android:layout_marginEnd="20dp"
             android:textAlignment="center"
             android:textSize="20sp"
-            android:text="TV4" />
+            android:text="TV4"
+            android:visibility="gone"/>
 
         <Space
             android:layout_width="match_parent"

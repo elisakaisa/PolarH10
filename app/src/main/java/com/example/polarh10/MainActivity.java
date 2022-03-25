@@ -50,7 +50,7 @@ public class MainActivity extends AppCompatActivity {
 
     /*---------- UI ------------*/
     Button bConnect, bStart, bStop, b3;
-    TextView tvBT, tvDeviceConnection, tv2;
+    TextView tvBT, tvDeviceConnection, tvHR, tvRRS;
 
     /*___________ TIMER __________*/
     Chronometer chronometer; // initiate chronometer
@@ -80,7 +80,8 @@ public class MainActivity extends AppCompatActivity {
         b3 = findViewById(R.id.button3);
         tvBT = findViewById(R.id.BTconnection);
         tvDeviceConnection = findViewById(R.id.deviceConnection);
-        tv2 = findViewById(R.id.tv_hr);
+        tvHR = findViewById(R.id.tv_hr);
+        tvRRS = findViewById(R.id.tv_RRSms);
         chronometer = findViewById(R.id.chronometer);
 
         /*------- PERMISSIONS -------*/
@@ -228,7 +229,9 @@ public class MainActivity extends AppCompatActivity {
             public void hrNotificationReceived (@NonNull String identifier, @NonNull PolarHrData data){
                 Log.d("MyApp", "HR: " + data.hr);
                 String sTv2 = "HR: " + data.hr;
-                tv2.setText(sTv2);
+                tvHR.setText(sTv2);
+                String sTVRRS = "RRS: " + data.rrsMs.get(0) + " ms";
+                tvRRS.setText(sTVRRS);
                 if (recording) {
                     HR.add(data.hr);
                     long timeElapsed = SystemClock.elapsedRealtime() - chronometer.getBase();

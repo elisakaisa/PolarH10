@@ -5,6 +5,7 @@
     <string name="BTdeviceStatus">BT device status</string>
     <string name="deviceStatus">No device connected</string>
     <string name="HR">HR</string>
+    <string name="RRS">RRS</string>
 
     <!-- MAIN ACTIVITY -->
     <string name="BTnotSupported">Bluetooth not supported</string>
