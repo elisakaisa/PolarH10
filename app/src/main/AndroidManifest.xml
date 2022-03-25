@@ -4,11 +4,16 @@
     package="com.example.polarh10"
     tools:ignore="ExtraText">
 
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        tools:ignore="ScopedStorage" />
+
     <!-- Polar SDK needs Bluetooth scan permission to search for BLE devices. Polar BLE SDK doesn't use the scan
     to decide the location so "neverForLocation" permission flag can be used.-->
     <uses-permission
         android:name="android.permission.BLUETOOTH_SCAN"
-        android:usesPermissionFlags="neverForLocation" />
+        android:usesPermissionFlags="neverForLocation"
+        tools:targetApi="s" />
 
     <!-- Polar SDK needs Bluetooth connect permission to connect for found BLE devices.-->
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />

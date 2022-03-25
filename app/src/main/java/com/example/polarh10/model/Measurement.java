@@ -19,6 +19,7 @@ public class Measurement {
     public void setTimeList(ArrayList<Integer> arrayList) {this.timeList = arrayList; }
 
     public void writeCSV(String filename){
+        /* Method to write the HR & time into a csv file and save it in the local strorage */
         File directoryDownload = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
         // /storage/emulated/0/Download
         File logDir = new File (directoryDownload, "PolarH10"); //Creates a new folder in DOWNLOAD directory
@@ -28,8 +29,7 @@ public class Measurement {
         try {
             outputStream = new FileOutputStream(file, false);
             for (int i = 0; i < HRList.size(); i++) {
-                //outputStream.write((timeList.get(i) + ",").getBytes());
-                //outputStream.write((ewmaData.get(i) + ",").getBytes());
+                outputStream.write((timeList.get(i) + ",").getBytes());
                 outputStream.write((HRList.get(i) + "\n").getBytes());
             }
         } catch (Exception e) {

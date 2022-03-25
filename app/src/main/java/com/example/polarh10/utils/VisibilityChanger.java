@@ -1,8 +1,11 @@
 package com.example.polarh10.utils;
+/*
+Utility class to set the visibility of buttons and text views
+Elisa Perini
+ */
 
 import android.view.View;
 import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 public class VisibilityChanger {

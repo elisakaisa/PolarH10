@@ -1,16 +1,15 @@
 package com.example.polarh10.utils;
 
-import android.app.Activity;
+/*
+class used by MainActivity to get alert Dialogs
+Elisa Perini
+ */
 import android.content.Context;
-import android.content.DialogInterface;
-import android.app.AlertDialog.Builder;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 public class AlertDial extends AppCompatActivity {
-
-    private Context context;
 
     // Alert dialogs for error messages
     public AlertDialog createMsgDialog(Context context, String title, String message) {
