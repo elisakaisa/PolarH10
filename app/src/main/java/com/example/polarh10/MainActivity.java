@@ -1,15 +1,17 @@
 package com.example.polarh10;
+/*
+Application that records HR data into a csv-file
+Elisa Perini
+ */
 
 import static android.view.View.GONE;
 import static com.polar.sdk.api.PolarBleApiDefaultImpl.defaultImplementation;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
 import androidx.annotation.NonNull;
 
 import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
-import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.SystemClock;
@@ -22,7 +24,6 @@ import android.widget.Toast;
 
 import com.example.polarh10.model.Measurement;
 import com.example.polarh10.utils.AlertDial;
-import com.example.polarh10.utils.BluetoothPermissions;
 import com.polar.sdk.api.PolarBleApi;
 import com.polar.sdk.api.PolarBleApi.DeviceStreamingFeature;
 import com.polar.sdk.api.PolarBleApiCallback;
@@ -83,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
         chronometer = findViewById(R.id.chronometer);
 
         /*------- PERMISSIONS -------*/
-        BluetoothPermissions.checkPermissions(this, MainActivity.this);
+        checkPermissions(this, MainActivity.this);
 
         /*-------- POLAR API --------*/
         polarApi();
@@ -243,35 +244,6 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-
-    /*---------- BLUETOOTH -----------*/
-    /*
-    public void checkPermissions(){
-        String[] PERMISSIONS = new String[0];
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
-            PERMISSIONS = new String[]{
-                    Manifest.permission.BLUETOOTH_SCAN,
-                    Manifest.permission.BLUETOOTH_CONNECT,
-                    Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.ACCESS_COARSE_LOCATION
-            };
-        }
-        if (!hasPermissions(this, PERMISSIONS)) {
-            ActivityCompat.requestPermissions(this, PERMISSIONS, PERMISSION_ALL);
-        }
-    }
-
-    private boolean hasPermissions(Context context, String[] permissions) {
-        if (context != null && permissions != null) {
-            for (String permission : permissions) {
-                if (ActivityCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
-                    return false;
-                }
-            }
-        }
-        return true;
-    } */
-
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[]
             permissions, @NonNull int[] grantResults) {
@@ -311,6 +283,5 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }
-
     }
 }
