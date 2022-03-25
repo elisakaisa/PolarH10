@@ -10,57 +10,139 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        tools:layout_editor_absoluteX="1dp"
+        app:layout_constraintEnd_toEndOf="parent"
         tools:layout_editor_absoluteY="1dp">
 
         <Space
             android:layout_width="match_parent"
-            android:layout_height="20dp"/>
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/TV1"
-            android:text="TV1"/>
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/TV2"
-            android:text="TV2"/>
-        <Space
-            android:layout_width="match_parent"
-            android:layout_height="20dp"/>
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/TV3"
-            android:text="TV3"/>
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/TV4"
-            android:text="TV4"/>
-        <Space
-            android:layout_width="match_parent"
-            android:layout_height="20dp"/>
+            android:layout_height="20dp" />
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="horizontal">
-            <Button
-                android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:weightSum="2">
+
+            <TextView
+                android:id="@+id/BTconnection"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:id="@+id/connect"
-                android:text="Connect"/>
-            <Button
-                android:layout_width="wrap_content"
+                android:layout_margin="20dp"
+                android:layout_marginEnd="20dp"
+                android:text="TV1"
+                android:textSize="15sp"
+                android:layout_weight="1"
+                android:layout_gravity="start"/>
+            <TextView
+                android:id="@+id/deviceConnection"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Buttin2"/>
+                android:layout_margin="20dp"
+                android:layout_marginEnd="20dp"
+                android:text="TV1"
+                android:textSize="15sp"
+                android:layout_weight="1"
+                android:layout_gravity="end"/>
+        </LinearLayout>
+
+
+        <TextView
+            android:id="@+id/tv_hr"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="20dp"
+            android:layout_marginEnd="20dp"
+            android:textAlignment="center"
+            android:textSize="20sp"
+            android:text="TV2" />
+        <Chronometer
+            android:id="@+id/chronometer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="20dp"
+            android:layout_marginEnd="20dp"
+            android:textAlignment="center"
+            android:textSize="20sp"/>
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="20dp" />
+
+        <TextView
+            android:id="@+id/TV3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="20dp"
+            android:layout_marginEnd="20dp"
+            android:textAlignment="center"
+            android:textSize="20sp"
+            android:text="TV3" />
+
+        <TextView
+            android:id="@+id/TV4"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="20dp"
+            android:layout_marginEnd="20dp"
+            android:textAlignment="center"
+            android:textSize="20sp"
+            android:text="TV4" />
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="20dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:weightSum="3">
+
+            <Space
+                android:layout_height="match_parent"
+                android:layout_width="20dp"/>
 
             <Button
+                android:id="@+id/connect"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Buttin3" />
+                android:text="Connect"
+                android:layout_weight="1"
+                android:layout_gravity="start"/>
+            <Space
+                android:layout_height="match_parent"
+                android:layout_width="20dp"/>
+
+            <Button
+                android:id="@+id/b_start"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="start"
+                android:layout_weight="1"
+                android:layout_gravity="center" />
+            <Button
+                android:id="@+id/b_stop"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="stop"
+                android:layout_weight="1"
+                android:layout_gravity="center"
+                android:visibility="gone"/>
+            <Space
+                android:layout_height="match_parent"
+                android:layout_width="20dp"/>
+
+            <Button
+                android:id="@+id/button3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Buttin3"
+                android:layout_weight="1"
+                android:layout_gravity="end"/>
+
+            <Space
+                android:layout_height="match_parent"
+                android:layout_width="20dp"/>
         </LinearLayout>
 
 

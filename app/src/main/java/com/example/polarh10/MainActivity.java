@@ -7,28 +7,33 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
 import android.Manifest;
-import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.os.Build;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.util.Log;
+import android.view.View;
 import android.widget.Button;
+import android.widget.Chronometer;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.example.polarh10.model.Measurement;
 import com.example.polarh10.utils.AlertDial;
 import com.polar.sdk.api.PolarBleApi;
-import com.polar.sdk.api.PolarBleApiDefaultImpl;
 import com.polar.sdk.api.PolarBleApi.DeviceStreamingFeature;
 import com.polar.sdk.api.PolarBleApiCallback;
 import com.polar.sdk.api.errors.PolarInvalidArgument;
 import com.polar.sdk.api.model.*;
 
+import java.util.ArrayList;
 import java.util.Set;
 import java.util.UUID;
 
 import io.reactivex.rxjava3.annotations.NonNull;
+
+import static com.example.polarh10.utils.VisibilityChanger.*;
 
 public class MainActivity extends AppCompatActivity {
     private PolarBleApi api;
@@ -37,8 +42,17 @@ public class MainActivity extends AppCompatActivity {
     Context context = this;
     int PERMISSION_ALL = 1;
 
-    Button bConnect;
-    TextView tv1, tv2;
+    Button bConnect, bStart, bStop, b3;
+    TextView tvBT, tvDeviceConnection, tv2;
+
+    /*___________ TIMER __________*/
+    Chronometer chronometer; // initiate chronometer
+    long timeWhenStopped = 0; //keeps track of time in pause
+
+    /*--------- SAVING ----------*/
+    Measurement cMeasurement;
+    ArrayList<Integer> HR = new ArrayList<>();
+    boolean recording = false;
 
     /*--------------------------- LOG -----------------------*/
     private static final String TAG = MainActivity.class.getSimpleName();
@@ -50,21 +64,19 @@ public class MainActivity extends AppCompatActivity {
 
         /*---------- UI ----------*/
         bConnect = findViewById(R.id.connect);
-        tv1 = findViewById(R.id.TV1);
-        tv2 = findViewById(R.id.TV2);
+        bStart = findViewById(R.id.b_start);
+        bStop = findViewById(R.id.b_stop);
+        b3 = findViewById(R.id.button3);
+        tvBT = findViewById(R.id.BTconnection);
+        tvDeviceConnection = findViewById(R.id.deviceConnection);
+        tv2 = findViewById(R.id.tv_hr);
+        chronometer = findViewById(R.id.chronometer);
 
 
         /*------- PERMISSIONS -------*/
-        String[] PERMISSIONS = {
-                Manifest.permission.BLUETOOTH_SCAN,
-                Manifest.permission.BLUETOOTH_CONNECT,
-                Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.ACCESS_COARSE_LOCATION
-        };
-        if (!hasPermissions(this, PERMISSIONS)) {
-            ActivityCompat.requestPermissions(this, PERMISSIONS, PERMISSION_ALL);
-        }
+        checkPermissions();
 
+        /*-------- POLAR API --------*/
         api = defaultImplementation(getApplicationContext(),  PolarBleApi.ALL_FEATURES);
         api.setApiCallback(new PolarBleApiCallback() {
             @Override
@@ -114,6 +126,7 @@ public class MainActivity extends AppCompatActivity {
                 Log.d("MyApp", "HR: " + data.hr);
                 String sTv2 = "HR: " + data.hr;
                 tv2.setText(sTv2);
+                if (recording) HR.add(data.hr);
             }
 
             @Override
@@ -121,8 +134,13 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        /*------- VISIBILITY ------*/
+        set4ButtonVisibility(bConnect, View.VISIBLE, bStart, View.GONE, bStop, View.GONE, b3, GONE);
+
         /*------ LISTENERS -----*/
         bConnect.setOnClickListener(v -> connect());
+        bStart.setOnClickListener(v -> start());
+        bStop.setOnClickListener(v -> stop());
 
 
     }
@@ -146,36 +164,66 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-
-
-
     public void connect(){
         checkBluetooth();
         try {
-            api.connectToDevice(deviceId);
+            api.connectToDevice(deviceId); //CONNECT
             Log.d(TAG, "connected to "+ deviceId);
             String sTV1 = "Connected to: " + deviceId;
-            tv1.setText(sTV1);
-            bConnect.setVisibility(GONE);
+            tvDeviceConnection.setText(sTV1);
+            set4ButtonVisibility(bConnect, View.GONE, bStart, View.VISIBLE, bStop, View.GONE, b3, GONE);
         } catch (PolarInvalidArgument e){
             String msg = "mDeviceId=" + deviceId + "\nConnectToDevice: Bad argument:";
             Log.d(TAG, "    restart: " + msg);
             String sTV1b = "Couldn't connect to: " + deviceId;
-            tv1.setText(sTV1b);
+            tvDeviceConnection.setText(sTV1b);
         }
     }
 
+    public void start(){
+        cMeasurement = new Measurement();
+        // chronometer
+        chronometer.setBase(SystemClock.elapsedRealtime() + timeWhenStopped);
+        chronometer.start();
+        recording = true;
+        Toast.makeText(getApplicationContext(), "Recording started", Toast.LENGTH_SHORT).show();
+        set4ButtonVisibility(bConnect, View.GONE, bStart, View.GONE, bStop, View.VISIBLE, b3, GONE);
+    }
+
+    public void stop(){
+        chronometer.stop();
+        recording = false;
+        set4ButtonVisibility(bConnect, View.GONE, bStart, View.VISIBLE, bStop, GONE, b3, GONE);
+        cMeasurement.setHRList(HR);
+        cMeasurement.writeCSV("HRrecording.csv");
+        Toast.makeText(getApplicationContext(), "Recording stopped and saved into a csv", Toast.LENGTH_SHORT).show();
+    }
+
     /*---------- BLUETOOTH -----------*/
+    public void checkPermissions(){
+        String[] PERMISSIONS = {
+                Manifest.permission.BLUETOOTH_SCAN,
+                Manifest.permission.BLUETOOTH_CONNECT,
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+        };
+        if (!hasPermissions(this, PERMISSIONS)) {
+            ActivityCompat.requestPermissions(this, PERMISSIONS, PERMISSION_ALL);
+        }
+    }
+
     public void checkBluetooth(){
         BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         if (mBluetoothAdapter == null) {
             // Device does not support Bluetooth
             new AlertDial().createMsgDialog(MainActivity.this, "No bluetooth", "Device does not support Bluetooth").show();
+            tvBT.setText(R.string.BTnotSupported);
         } else if (!mBluetoothAdapter.isEnabled()) {
             // Bluetooth is not enabled :)
             new AlertDial().createMsgDialog(MainActivity.this, "No bluetooth", "Turn Bluetooth on").show();
+            tvBT.setText(R.string.BToff);
         } else {
-            // Bluetooth is enabled
+            tvBT.setText(R.string.BTon);
         }
     }
 
@@ -197,29 +245,25 @@ public class MainActivity extends AppCompatActivity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == PERMISSION_ALL) {// All (Handle multiple)
             for (int i = 0; i < permissions.length; i++) {
-                if (permissions[i].equals(Manifest.
-                        permission.ACCESS_COARSE_LOCATION)) {
+                if (permissions[i].equals(Manifest.permission.ACCESS_COARSE_LOCATION)) {
                     if (grantResults[i] == PackageManager.PERMISSION_GRANTED) {
                         Log.d(TAG, "REQ_ACCESS_PERMISSIONS: COARSE_LOCATION " + "granted");
                     } else if (grantResults[i] == PackageManager.PERMISSION_DENIED) {
                         Log.d(TAG, "REQ_ACCESS_PERMISSIONS: COARSE_LOCATION " + "denied");
                     }
-                } else if (permissions[i].equals(Manifest.
-                        permission.ACCESS_FINE_LOCATION)) {
+                } else if (permissions[i].equals(Manifest.permission.ACCESS_FINE_LOCATION)) {
                     if (grantResults[i] == PackageManager.PERMISSION_GRANTED) {
                         Log.d(TAG, "REQ_ACCESS_PERMISSIONS: FINE_LOCATION " + "granted");
                     } else if (grantResults[i] == PackageManager.PERMISSION_DENIED) {
                         Log.d(TAG, "REQ_ACCESS_PERMISSIONS: FINE_LOCATION " + "denied");
                     }
-                } else if (permissions[i].equals(Manifest.
-                        permission.BLUETOOTH_SCAN)) {
+                } else if (permissions[i].equals(Manifest.permission.BLUETOOTH_SCAN)) {
                     if (grantResults[i] == PackageManager.PERMISSION_GRANTED) {
                         Log.d(TAG, "REQ_ACCESS_PERMISSIONS: BLUETOOTH_SCAN " + "granted");
                     } else if (grantResults[i] == PackageManager.PERMISSION_DENIED) {
                         Log.d(TAG, "REQ_ACCESS_PERMISSIONS: BLUETOOTH_SCAN " + "denied");
                     }
-                } else if (permissions[i].equals(Manifest.
-                        permission.BLUETOOTH_CONNECT)) {
+                } else if (permissions[i].equals(Manifest.permission.BLUETOOTH_CONNECT)) {
                     if (grantResults[i] == PackageManager.PERMISSION_GRANTED) {
                         Log.d(TAG, "REQ_ACCESS_PERMISSIONS: BLUETOOTH_CONNECT" + " " + "granted");
                     } else if (grantResults[i] == PackageManager.PERMISSION_DENIED) {
