@@ -165,19 +165,31 @@ public class MainActivity extends AppCompatActivity {
 
 
     public void connect(){
-        checkBluetooth();
-        try {
-            api.connectToDevice(deviceId); //CONNECT
-            Log.d(TAG, "connected to "+ deviceId);
-            String sTV1 = "Connected to: " + deviceId;
-            tvDeviceConnection.setText(sTV1);
-            set4ButtonVisibility(bConnect, View.GONE, bStart, View.VISIBLE, bStop, View.GONE, b3, GONE);
-        } catch (PolarInvalidArgument e){
-            String msg = "mDeviceId=" + deviceId + "\nConnectToDevice: Bad argument:";
-            Log.d(TAG, "    restart: " + msg);
-            String sTV1b = "Couldn't connect to: " + deviceId;
-            tvDeviceConnection.setText(sTV1b);
+        BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        if (mBluetoothAdapter == null) {
+            // Device does not support Bluetooth
+            new AlertDial().createMsgDialog(MainActivity.this, "No bluetooth", "Device does not support Bluetooth").show();
+            tvBT.setText(R.string.BTnotSupported);
+        } else if (!mBluetoothAdapter.isEnabled()) {
+            // Bluetooth is not enabled :)
+            new AlertDial().createMsgDialog(MainActivity.this, "No bluetooth", "Turn Bluetooth on").show();
+            tvBT.setText(R.string.BToff);
+        } else {
+            tvBT.setText(R.string.BTon);
+            try {
+                api.connectToDevice(deviceId); //CONNECT
+                Log.d(TAG, "connected to "+ deviceId);
+                String sTV1 = "Connected to: " + deviceId;
+                tvDeviceConnection.setText(sTV1);
+                set4ButtonVisibility(bConnect, View.GONE, bStart, View.VISIBLE, bStop, View.GONE, b3, GONE);
+            } catch (PolarInvalidArgument e){
+                String msg = "mDeviceId=" + deviceId + "\nConnectToDevice: Bad argument:";
+                Log.d(TAG, "    restart: " + msg);
+                String sTV1b = "Couldn't connect to: " + deviceId;
+                tvDeviceConnection.setText(sTV1b);
+            }
         }
+
     }
 
     public void start(){
@@ -213,18 +225,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void checkBluetooth(){
-        BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        if (mBluetoothAdapter == null) {
-            // Device does not support Bluetooth
-            new AlertDial().createMsgDialog(MainActivity.this, "No bluetooth", "Device does not support Bluetooth").show();
-            tvBT.setText(R.string.BTnotSupported);
-        } else if (!mBluetoothAdapter.isEnabled()) {
-            // Bluetooth is not enabled :)
-            new AlertDial().createMsgDialog(MainActivity.this, "No bluetooth", "Turn Bluetooth on").show();
-            tvBT.setText(R.string.BToff);
-        } else {
-            tvBT.setText(R.string.BTon);
-        }
+
     }
 
     private boolean hasPermissions(Context context, String[] permissions) {

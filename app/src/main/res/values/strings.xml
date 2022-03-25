@@ -1,6 +1,12 @@
 <resources>
     <string name="app_name">PolarH10</string>
 
+    <!-- activity_main.xml -->
+    <string name="BTdeviceStatus">BT device status</string>
+    <string name="deviceStatus">No device connected</string>
+    <string name="HR">HR</string>
+
+    <!-- MAIN ACTIVITY -->
     <string name="BTnotSupported">Bluetooth not supported</string>
     <string name="BToff">Bluetooth is off</string>
     <string name="BTon">Bluetooth is on</string>
