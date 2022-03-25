@@ -1,11 +1,14 @@
 package com.example.polarh10;
 
+import static android.view.View.GONE;
 import static com.polar.sdk.api.PolarBleApiDefaultImpl.defaultImplementation;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
 import android.Manifest;
+import android.app.AlertDialog;
+import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Build;
@@ -14,6 +17,7 @@ import android.util.Log;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.example.polarh10.utils.AlertDial;
 import com.polar.sdk.api.PolarBleApi;
 import com.polar.sdk.api.PolarBleApiDefaultImpl;
 import com.polar.sdk.api.PolarBleApi.DeviceStreamingFeature;
@@ -143,6 +147,38 @@ public class MainActivity extends AppCompatActivity {
 
 
 
+
+
+    public void connect(){
+        checkBluetooth();
+        try {
+            api.connectToDevice(deviceId);
+            Log.d(TAG, "connected to "+ deviceId);
+            String sTV1 = "Connected to: " + deviceId;
+            tv1.setText(sTV1);
+            bConnect.setVisibility(GONE);
+        } catch (PolarInvalidArgument e){
+            String msg = "mDeviceId=" + deviceId + "\nConnectToDevice: Bad argument:";
+            Log.d(TAG, "    restart: " + msg);
+            String sTV1b = "Couldn't connect to: " + deviceId;
+            tv1.setText(sTV1b);
+        }
+    }
+
+    /*---------- BLUETOOTH -----------*/
+    public void checkBluetooth(){
+        BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        if (mBluetoothAdapter == null) {
+            // Device does not support Bluetooth
+            new AlertDial().createMsgDialog(MainActivity.this, "No bluetooth", "Device does not support Bluetooth").show();
+        } else if (!mBluetoothAdapter.isEnabled()) {
+            // Bluetooth is not enabled :)
+            new AlertDial().createMsgDialog(MainActivity.this, "No bluetooth", "Turn Bluetooth on").show();
+        } else {
+            // Bluetooth is enabled
+        }
+    }
+
     private boolean hasPermissions(Context context, String[] permissions) {
         if (context != null && permissions != null) {
             for (String permission : permissions) {
@@ -152,20 +188,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         return true;
-    }
-
-    public void connect(){
-        try {
-            api.connectToDevice(deviceId);
-            Log.d(TAG, "connected to "+ deviceId);
-            String sTV1 = "Connected to: " + deviceId;
-            tv1.setText(sTV1);
-        } catch (PolarInvalidArgument e){
-            String msg = "mDeviceId=" + deviceId + "\nConnectToDevice: Bad argument:";
-            Log.d(TAG, "    restart: " + msg);
-            String sTV1b = "Couldn't connect to: " + deviceId;
-            tv1.setText(sTV1b);
-        }
     }
 
     @Override
