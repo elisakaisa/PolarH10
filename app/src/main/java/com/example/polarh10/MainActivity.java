@@ -60,6 +60,7 @@ public class MainActivity extends AppCompatActivity {
     Measurement cMeasurement;
     ArrayList<Integer> HR = new ArrayList<>();
     ArrayList<Integer> time = new ArrayList<>();
+    ArrayList<Integer> RRS = new ArrayList<>();
     boolean recording = false;
 
     /*------- ECG --------*/
@@ -133,13 +134,17 @@ public class MainActivity extends AppCompatActivity {
             tvBT.setText(R.string.BTon);
             try {
                 api.connectToDevice(deviceId); //CONNECT
+                //api.searchForDevice();
+                //api.autoConnectToDevice(-50, null, null).subscribe();
                 String sTV1 = "Connected to: " + deviceId;
                 tvDeviceConnection.setText(sTV1);
                 set4ButtonVisibility(bConnect, View.GONE, bStart, View.VISIBLE, bStop, View.GONE, b3, GONE);
-            } catch (PolarInvalidArgument e){
+            /*} catch (PolarInvalidArgument e){
                 Log.d(TAG, "error: " + e);
                 String sTV1b = "Couldn't connect to: " + deviceId;
-                tvDeviceConnection.setText(sTV1b);
+                tvDeviceConnection.setText(sTV1b); */
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
 
@@ -159,6 +164,7 @@ public class MainActivity extends AppCompatActivity {
         chronometer.stop();
         recording = false;
         set4ButtonVisibility(bConnect, View.GONE, bStart, View.VISIBLE, bStop, GONE, b3, GONE);
+        cMeasurement.getRRSList(); // to test if RRS was recorded
         cMeasurement.setHRList(HR);     // save whole HR list
         cMeasurement.setTimeList(time); // save time stamps
         cMeasurement.writeCSV("HR_recording.csv");
@@ -230,6 +236,7 @@ public class MainActivity extends AppCompatActivity {
                 Log.d("MyApp", "HR: " + data.hr);
                 String sTv2 = "HR: " + data.hr;
                 tvHR.setText(sTv2);
+
                 String sTVRRS = "RRS: " + data.rrsMs.get(0) + " ms";
                 tvRRS.setText(sTVRRS);
                 if (recording) {
@@ -237,6 +244,12 @@ public class MainActivity extends AppCompatActivity {
                     long timeElapsed = SystemClock.elapsedRealtime() - chronometer.getBase();
                     int seconds = (int) timeElapsed/1000;
                     time.add(seconds);
+
+                    if (data.rrsMs.size() == 1) cMeasurement.addToRRSLists(data.rrsMs.get(0));
+                    else if (data.rrsMs.size() > 1) {
+                        cMeasurement.addToRRSLists(data.rrsMs.get(0));
+                        cMeasurement.addToRRSLists(data.rrsMs.get(1));
+                    }
 
                 }
             }

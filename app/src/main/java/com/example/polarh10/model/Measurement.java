@@ -11,12 +11,29 @@ public class Measurement {
     ArrayList<Integer> HRList;
     ArrayList<Integer> timeList;
 
+    ArrayList<Integer> RRSList = new ArrayList<>();
+    ArrayList<Long> timeSumList = new ArrayList<>();
+
+
     public Measurement(){
         /* CONSTRUCTOR */
     }
 
     public void setHRList(ArrayList<Integer> arrayList) {this.HRList = arrayList; }
     public void setTimeList(ArrayList<Integer> arrayList) {this.timeList = arrayList; }
+
+    public ArrayList<Integer> getRRSList(){
+        return RRSList;
+    }
+
+    public void addToRRSLists(Integer RRSvalue){
+        if (timeSumList.size() < 1) {
+            RRSList.add(0);
+            timeSumList.add(0L);
+        }
+        RRSList.add(RRSvalue);
+        timeSumList.add((long) timeSumList.get(timeSumList.size()-1) + RRSvalue );
+    }
 
     public void writeCSV(String filename){
         /* Method to write the HR & time into a csv file and save it in the local strorage */
