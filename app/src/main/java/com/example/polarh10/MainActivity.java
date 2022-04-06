@@ -5,15 +5,21 @@ Elisa Perini
  */
 
 import static android.view.View.GONE;
+import static android.view.View.VISIBLE;
 import static com.polar.sdk.api.PolarBleApiDefaultImpl.defaultImplementation;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.annotation.NonNull;
 
 import android.Manifest;
+import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.SystemClock;
 import android.util.Log;
 import android.view.View;
@@ -30,6 +36,9 @@ import com.polar.sdk.api.PolarBleApiCallback;
 import com.polar.sdk.api.errors.PolarInvalidArgument;
 import com.polar.sdk.api.model.*;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.UUID;
@@ -49,8 +58,8 @@ public class MainActivity extends AppCompatActivity {
     int PERMISSION_ALL = 1;
 
     /*---------- UI ------------*/
-    Button bConnect, bStart, bStop, b3;
-    TextView tvBT, tvDeviceConnection, tvHR, tvRRS;
+    Button bConnect, bStart, bStop, bDisconnect, b3;
+    TextView tvBT, tvDeviceConnection, tvHR, tvRRS, tvDeviceBattery;
 
     /*___________ TIMER __________*/
     Chronometer chronometer; // initiate chronometer
@@ -78,33 +87,96 @@ public class MainActivity extends AppCompatActivity {
         bConnect = findViewById(R.id.connect);
         bStart = findViewById(R.id.b_start);
         bStop = findViewById(R.id.b_stop);
+        bDisconnect = findViewById(R.id.b_disconnect);
         b3 = findViewById(R.id.button3);
         tvBT = findViewById(R.id.BTconnection);
         tvDeviceConnection = findViewById(R.id.deviceConnection);
         tvHR = findViewById(R.id.tv_hr);
         tvRRS = findViewById(R.id.tv_RRSms);
+        tvDeviceBattery = findViewById(R.id.deviceBattery);
         chronometer = findViewById(R.id.chronometer);
 
         /*------- PERMISSIONS -------*/
         checkPermissions(this, MainActivity.this);
 
+        /*-------- BT --------*/
+        checkBT();
+
         /*-------- POLAR API --------*/
         polarApi();
 
         /*------- VISIBILITY ------*/
-        set4ButtonVisibility(bConnect, View.VISIBLE, bStart, View.GONE, bStop, View.GONE, b3, GONE);
+        setButtonVisibility(bConnect, View.VISIBLE, bStart, View.GONE, bStop, View.GONE, b3, GONE, bDisconnect, GONE);
+
+        /*----- ACTIVITY LAUNCHER ------*/
+        ActivityResultLauncher<Intent> someActivityResultLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == Activity.RESULT_OK) {
+                        // There are no request codes
+                        Intent data = result.getData();
+
+                        //get to the correct directory
+                        File directoryDownload = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+                        // /storage/emulated/0/Download
+                        File logDir = new File (directoryDownload, "PolarH10"); //Creates a new folder in DOWNLOAD directory
+                        logDir.mkdirs();
+                        File file = new File(logDir, "Recording.csv");
+
+                        OutputStream fileOutputStream = null;
+                        try {
+                            assert data != null;
+                            fileOutputStream = getContentResolver().openOutputStream(data.getData());
+                            fileOutputStream = new FileOutputStream(file, false); //puts file in correct folder
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        try {
+                            assert fileOutputStream != null;
+                            String[] line1 = {"time", "HR "};
+                            fileOutputStream.write((line1[0] + ",").getBytes()); //Write the obtained string to csv
+                            fileOutputStream.write((line1[1]+ "\n").getBytes());
+
+                            for (int i = 0; i < cMeasurement.getHRList().size(); i++) {
+                                fileOutputStream.write((cMeasurement.getTimeList().get(i) + ",").getBytes());
+                                fileOutputStream.write((cMeasurement.getHRList().get(i) + "\n").getBytes());
+                            }
+
+                            fileOutputStream.flush();
+                            fileOutputStream.close();
+                            Toast.makeText(getApplicationContext(), "file saved!", Toast.LENGTH_SHORT).show();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
 
         /*------ LISTENERS -----*/
         bConnect.setOnClickListener(v -> connect());
         bStart.setOnClickListener(v -> start());
-        bStop.setOnClickListener(v -> stop());
+        bStop.setOnClickListener(v -> {
+            stop();
+                Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+                intent.addCategory(Intent.CATEGORY_OPENABLE);
+                intent.setType("text/csv");
+                intent.putExtra(Intent.EXTRA_TITLE, "Recording.csv");
+                someActivityResultLauncher.launch(intent);
+        });
+        bDisconnect.setOnClickListener(v -> disconnect());
         b3.setOnClickListener(v -> recordECG());
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        api.backgroundEntered();
+        //api.backgroundEntered();
+        try {
+            api.disconnectFromDevice(deviceId);
+            String sTV1b = "Disconnected";
+            tvDeviceConnection.setText(sTV1b);
+        } catch (PolarInvalidArgument polarInvalidArgument) {
+            polarInvalidArgument.printStackTrace();
+        }
     }
 
     @Override
@@ -119,6 +191,18 @@ public class MainActivity extends AppCompatActivity {
         api.shutDown();
     }
 
+    public void checkBT() {
+        BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        if (mBluetoothAdapter == null) {
+            // Device does not support Bluetooth
+            tvBT.setText(R.string.BTnotSupported);
+        } else if (!mBluetoothAdapter.isEnabled()) {
+            // Bluetooth is not enabled :)
+            tvBT.setText(R.string.BToff);
+        } else {
+            tvBT.setText(R.string.BTon);
+        }
+    }
 
     public void connect(){
         BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -136,18 +220,29 @@ public class MainActivity extends AppCompatActivity {
                 api.connectToDevice(deviceId); //CONNECT
                 //api.searchForDevice();
                 //api.autoConnectToDevice(-50, null, null).subscribe();
-                String sTV1 = "Connected to: " + deviceId;
-                tvDeviceConnection.setText(sTV1);
-                set4ButtonVisibility(bConnect, View.GONE, bStart, View.VISIBLE, bStop, View.GONE, b3, GONE);
-            /*} catch (PolarInvalidArgument e){
+
+            } catch (PolarInvalidArgument e){
                 Log.d(TAG, "error: " + e);
                 String sTV1b = "Couldn't connect to: " + deviceId;
-                tvDeviceConnection.setText(sTV1b); */
+                tvDeviceConnection.setText(sTV1b);
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
 
+    }
+
+    public void disconnect(){
+        try {
+            api.disconnectFromDevice(deviceId);
+            String sTV1b = "Disconnected";
+            tvDeviceConnection.setText(sTV1b);
+            setButtonVisibility(bConnect, View.VISIBLE, bStart, View.GONE, bStop, View.GONE, b3, GONE, bDisconnect, GONE);
+            chronometer.stop();
+            recording = false;
+        } catch (PolarInvalidArgument polarInvalidArgument) {
+            polarInvalidArgument.printStackTrace();
+        }
     }
 
     public void start(){
@@ -157,18 +252,16 @@ public class MainActivity extends AppCompatActivity {
         chronometer.start();
         recording = true;
         Toast.makeText(getApplicationContext(), "Recording started", Toast.LENGTH_SHORT).show();
-        set4ButtonVisibility(bConnect, View.GONE, bStart, View.GONE, bStop, View.VISIBLE, b3, GONE);
+        setButtonVisibility(bConnect, View.GONE, bStart, View.GONE, bStop, View.VISIBLE, b3, GONE, bDisconnect, GONE);
     }
 
     public void stop(){
         chronometer.stop();
         recording = false;
-        set4ButtonVisibility(bConnect, View.GONE, bStart, View.VISIBLE, bStop, GONE, b3, GONE);
+        setButtonVisibility(bConnect, View.GONE, bStart, View.VISIBLE, bStop, GONE, b3, GONE, bDisconnect, VISIBLE);
         cMeasurement.getRRSList(); // to test if RRS was recorded
         cMeasurement.setHRList(HR);     // save whole HR list
         cMeasurement.setTimeList(time); // save time stamps
-        cMeasurement.writeCSV("HR_recording.csv");
-        Toast.makeText(getApplicationContext(), "Recording stopped and saved into a csv", Toast.LENGTH_SHORT).show();
     }
 
     public void recordECG(){
@@ -197,16 +290,22 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void deviceConnected(@NonNull PolarDeviceInfo polarDeviceInfo){
                 Log.d("MyApp", "CONNECTED: " + polarDeviceInfo.deviceId);
+                String sTV1 = "Connected to: " + deviceId;
+                tvDeviceConnection.setText(sTV1);
             }
 
             @Override
             public void deviceConnecting(@NonNull PolarDeviceInfo polarDeviceInfo){
                 Log.d("MyApp", "CONNECTING: " + polarDeviceInfo.deviceId);
+                String sTV1 = "Connecting to: " + deviceId;
+                tvDeviceConnection.setText(sTV1);
             }
 
             @Override
             public void deviceDisconnected(@NonNull PolarDeviceInfo polarDeviceInfo){
                 Log.d("MyApp", "DISCONNECTED: " + polarDeviceInfo.deviceId);
+                String sTV1 = "Disconnected from: " + deviceId;
+                tvDeviceConnection.setText(sTV1);
             }
 
             @Override
@@ -220,6 +319,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void hrFeatureReady(@NonNull String identifier){
                 Log.d("MyApp", "HR READY: " + identifier);
+                setButtonVisibility(bConnect, View.GONE, bStart, View.VISIBLE, bStop, View.GONE, b3, GONE, bDisconnect, VISIBLE);
+                Toast.makeText(getApplicationContext(), "Device ready to record", Toast.LENGTH_SHORT).show();
             }
 
             @Override
@@ -229,11 +330,14 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void batteryLevelReceived (@NonNull String identifier,int level){
+                Log.d("MyApp", "Battery: " + level);
+                String tv = deviceId + ": battery level = " + level;
+                tvDeviceBattery.setText(tv);
             }
 
             @Override
             public void hrNotificationReceived (@NonNull String identifier, @NonNull PolarHrData data){
-                Log.d("MyApp", "HR: " + data.hr);
+                //Log.d("MyApp", "HR: " + data.hr);
                 String sTv2 = "HR: " + data.hr;
                 tvHR.setText(sTv2);
 
@@ -250,13 +354,11 @@ public class MainActivity extends AppCompatActivity {
                         cMeasurement.addToRRSLists(data.rrsMs.get(0));
                         cMeasurement.addToRRSLists(data.rrsMs.get(1));
                     }
-
                 }
             }
 
             @Override
-            public void polarFtpFeatureReady (@NonNull String s){
-            }
+            public void polarFtpFeatureReady (@NonNull String s){}
         });
     }
 

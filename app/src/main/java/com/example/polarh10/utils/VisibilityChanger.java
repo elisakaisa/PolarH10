@@ -10,11 +10,12 @@ import android.widget.TextView;
 
 public class VisibilityChanger {
 
-    public static void set4ButtonVisibility(Button b1, int v1, Button b2, int v2, Button b3, int v3, Button b4, int v4){
+    public static void setButtonVisibility(Button b1, int v1, Button b2, int v2, Button b3, int v3, Button b4, int v4, Button b5, int v5){
         b1.setVisibility(v1);
         b2.setVisibility(v2);
         b3.setVisibility(v3);
         b4.setVisibility(v4);
+        b5.setVisibility(v5);
     }
     //change visibility of three views
     public static void set3ButtonVisibility(Button b1, int v1, Button b2, int v2, Button b3, int v3){

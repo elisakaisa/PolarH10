@@ -25,6 +25,12 @@ public class Measurement {
     public ArrayList<Integer> getRRSList(){
         return RRSList;
     }
+    public ArrayList<Integer> getTimeList(){
+        return timeList;
+    }
+    public ArrayList<Integer> getHRList(){
+        return HRList;
+    }
 
     public void addToRRSLists(Integer RRSvalue){
         if (timeSumList.size() < 1) {
@@ -33,25 +39,5 @@ public class Measurement {
         }
         RRSList.add(RRSvalue);
         timeSumList.add((long) timeSumList.get(timeSumList.size()-1) + RRSvalue );
-    }
-
-    public void writeCSV(String filename){
-        /* Method to write the HR & time into a csv file and save it in the local strorage */
-        File directoryDownload = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-        // /storage/emulated/0/Download
-        File logDir = new File (directoryDownload, "PolarH10"); //Creates a new folder in DOWNLOAD directory
-        logDir.mkdirs();
-        File file = new File(logDir, filename);
-        FileOutputStream outputStream = null;
-        try {
-            outputStream = new FileOutputStream(file, false);
-            for (int i = 0; i < HRList.size(); i++) {
-                outputStream.write((timeList.get(i) + ",").getBytes());
-                outputStream.write((HRList.get(i) + "\n").getBytes());
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            Log.i("Write CSV", "something went wrong" + e);
-        }
     }
 }

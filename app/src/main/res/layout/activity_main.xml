@@ -48,6 +48,15 @@
                 android:layout_gravity="center_horizontal"/>
         </LinearLayout>
 
+        <TextView
+            android:id="@+id/deviceBattery"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="20dp"
+            android:layout_marginEnd="20dp"
+            android:textAlignment="center"
+            android:textSize="15sp" />
+
 
         <TextView
             android:id="@+id/tv_hr"
@@ -153,6 +162,14 @@
                 android:text="Buttin3"
                 android:layout_weight="1"
                 android:layout_gravity="end"/>
+            <Button
+                android:id="@+id/b_disconnect"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Disconnect"
+                android:layout_weight="1"
+                android:layout_gravity="center"
+                android:visibility="gone"/>
 
             <Space
                 android:layout_height="match_parent"
